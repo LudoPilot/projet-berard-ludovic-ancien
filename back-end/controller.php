@@ -17,7 +17,7 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 	    return $response;
 	}
 	
-	function  getSearchCalatogue (Request $request, Response $response, $args) {
+	function  getSearchCatalogue (Request $request, Response $response, $args) {
 	    $filtre = $args['filtre'];
 	    $flux = '[{"titre":"linux","ref":"001","prix":"20"},{"titre":"java","ref":"002","prix":"21"},{"titre":"windows","ref":"003","prix":"22"},{"titre":"angular","ref":"004","prix":"23"},{"titre":"unix","ref":"005","prix":"25"},{"titre":"javascript","ref":"006","prix":"19"},{"titre":"html","ref":"007","prix":"15"},{"titre":"css","ref":"008","prix":"10"}]';
 	   
@@ -107,3 +107,36 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 	    return addHeaders ($response);
 	}
 
+	function postRegister(Request $request, Response $response, $args) {
+		global $entityManager;
+	
+		$body = $request->getParsedBody();
+		$login = $body['login'] ?? '';
+		$password = $body['password'] ?? '';
+		$email = $body['email'] ?? '';
+	
+		// Validation
+		if (!preg_match("/[a-zA-Z0-9]{1,20}/", $login) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			return $response->withStatus(400);
+		}
+	
+		$utilisateurRepository = $entityManager->getRepository('Utilisateur');
+		if ($utilisateurRepository->findOneBy(['login' => $login])) {
+			return $response->withStatus(409);
+		}
+	
+		// Hashage du mot de passe
+		$hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+	
+		// Création du nouvel utilisateur
+		$utilisateur = new Utilisateur();
+		$utilisateur->setLogin($login);
+		$utilisateur->setPassword($hashedPassword);
+		$utilisateur->setEmail($email);
+	
+		$entityManager->persist($utilisateur);
+		$entityManager->flush();
+	
+		return $response->withStatus(201); 
+	}
+	

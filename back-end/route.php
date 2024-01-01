@@ -5,7 +5,7 @@
 	$app->options('/api/catalogue', 'optionsCatalogue' );
 
 	// API Nécessitant un Jwt valide
-	$app->get('/api/catalogue/{filtre}', 'getSearchCalatogue' );
+	$app->get('/api/catalogue/{filtre}', 'getSearchCatalogue' );
 
 	// API Nécessitant un Jwt valide
 	$app->get('/api/catalogue', 'getCatalogue');
@@ -18,5 +18,6 @@
 	// APi d'authentification générant un JWT
 	$app->post('/api/utilisateur/login', 'postLogin');
 	
-	
+	// Inscription
+	$app->post('/api/utilisateur/register', 'postRegister');
 
