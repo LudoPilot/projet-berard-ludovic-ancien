@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
-import { NgForm } from '@angular/forms';
+import { FormsModule, NgForm } from '@angular/forms';
 import { RegistrationService } from '../registration.service';
 
 @Component({
   selector: 'app-registration',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './registration.component.html',
   styleUrl: './registration.component.css'
 })
