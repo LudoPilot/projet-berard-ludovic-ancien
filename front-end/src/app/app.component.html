@@ -1,2 +1,51 @@
 <app-header></app-header>
-<router-outlet></router-outlet>
+
+<main>
+	<h1>Bienvenue</h1>
+
+	<router-outlet></router-outlet>
+	
+	<div *ngIf="!isLoggedIn">
+		<h2>Connexion</h2>
+		<form (ngSubmit)="login()">
+			<div class="form-group">
+				<label for="login">Login</label>
+				<input type="text" id="login" name="login" [(ngModel)]="loginForm.login" required>
+			</div>
+			<div class="form-group">
+				<label for="password">Mot de passe</label>
+				<input type="password" id="password" name="password" [(ngModel)]="loginForm.password" required>
+			</div>
+			<button type="submit">Se connecter</button>
+		</form>
+	</div>
+
+	<div *ngIf="isLoggedIn">
+		<app-catalog></app-catalog>
+		<h2>Chercher des produits par nom ou par catégorie</h2>
+		<div class="search-container">
+			<div class="search-container">
+				<input type="text" #searchInput (keyup)="onSearch()" [(ngModel)]="searchTerm" placeholder="Rechercher...">
+			</div>	  
+		</div>
+
+		<table *ngIf="searchResults.length > 0">
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Nom</th>
+					<th>Catégorie</th>
+					<th>Prix</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr *ngFor="let product of searchResults">
+					<td>{{ product.id }}</td>
+					<td>{{ product.name }}</td>
+					<td>{{ product.category }}</td>
+					<td>{{ product.price | currency: 'USD' }}</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</main>

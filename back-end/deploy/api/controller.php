@@ -17,31 +17,29 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 	    return $response;
 	}
 	
-	function  getSearchCatalogue (Request $request, Response $response, $args) {
-	    $filtre = $args['filtre'];
-	    $flux = '[{"titre":"linux","ref":"001","prix":"20"},{"titre":"java","ref":"002","prix":"21"},{"titre":"windows","ref":"003","prix":"22"},{"titre":"angular","ref":"004","prix":"23"},{"titre":"unix","ref":"005","prix":"25"},{"titre":"javascript","ref":"006","prix":"19"},{"titre":"html","ref":"007","prix":"15"},{"titre":"css","ref":"008","prix":"10"}]';
-	   
-	    if ($filtre) {
-	      $data = json_decode($flux, true); 
-	    	
-		$res = array_filter($data, function($obj) use ($filtre)
-		{ 
-		    return strpos($obj["titre"], $filtre) !== false;
-		});
-		$response->getBody()->write(json_encode(array_values($res)));
-	    } else {
-		 $response->getBody()->write($flux);
-	    }
-
-	    return addHeaders ($response);
+	function getSearchCatalogue(Request $request, Response $response, $args) {
+		$filtre = $args['filtre'];
+		$data = file_get_contents(__DIR__ . '/../assets/mock/product-list.json');
+		$data = json_decode($data, true);
+	
+		if ($filtre) {
+			$res = array_filter($data, function($obj) use ($filtre) { 
+				$filtre = strtolower($filtre);
+				return strpos(strtolower($obj["name"]), $filtre) !== false || strpos(strtolower($obj["category"]), $filtre) !== false;
+			});
+			$response->getBody()->write(json_encode(array_values($res)));
+		} else {
+			$response->getBody()->write(json_encode($data));
+		}
+	
+		return addHeaders($response);
 	}
 
 	// API Nécessitant un Jwt valide
 	function getCatalogue (Request $request, Response $response, $args) {
-	    $flux = '[{"titre":"linux","ref":"001","prix":"20"},{"titre":"java","ref":"002","prix":"21"},{"titre":"windows","ref":"003","prix":"22"},{"titre":"angular","ref":"004","prix":"23"},{"titre":"unix","ref":"005","prix":"25"},{"titre":"javascript","ref":"006","prix":"19"},{"titre":"html","ref":"007","prix":"15"},{"titre":"css","ref":"008","prix":"10"}]';
-	    $data = json_decode($flux, true); 
-	    
-	    $response->getBody()->write(json_encode($data));
+		$data = file_get_contents(__DIR__ . '/../assets/mock/product-list.json');
+
+	    $response->getBody()->write($data);
 	    
 	    return addHeaders ($response);
 	}
@@ -76,36 +74,44 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 	}
 
 	// APi d'authentification générant un JWT
-	function postLogin (Request $request, Response $response, $args) {   
-	    global $entityManager;
-	    $err=false;
-	    $body = $request->getParsedBody();
-	    $login = $body ['login'] ?? "";
-	    $pass = $body ['password'] ?? "";
-
-	    if (!preg_match("/[a-zA-Z0-9]{1,20}/",$login))   {
-		$err = true;
-	    }
-	    if (!preg_match("/[a-zA-Z0-9]{1,20}/",$pass))  {
-		$err=true;
-	    }
-	    if (!$err) {
-		$utilisateurRepository = $entityManager->getRepository('Utilisateurs');
-		$utilisateur = $utilisateurRepository->findOneBy(array('login' => $login, 'password' => $pass));
-		if ($utilisateur and $login == $utilisateur->getLogin() and $pass == $utilisateur->getPassword()) {
-		    $response = addHeaders ($response);
-		    $response = createJwT ($response);
-		    $data = array('nom' => $utilisateur->getNom(), 'prenom' => $utilisateur->getPrenom());
-		    $response->getBody()->write(json_encode($data));
-		} else {          
-		    $response = $response->withStatus(403);
+	function postLogin(Request $request, Response $response, $args) {
+		global $entityManager;
+	
+		$err = false;
+		$body = $request->getParsedBody();
+		$login = $body['login'] ?? "";
+		$pass = $body['password'] ?? "";
+	
+		// Validation des données reçues
+		if (!preg_match("/[a-zA-Z0-9]{1,20}/", $login)) {
+			$err = true;
 		}
-	    } else {
-		$response = $response->withStatus(500);
-	    }
-
-	    return addHeaders ($response);
+	
+		// Récupération de l'utilisateur depuis la base de données
+		$utilisateurRepository = $entityManager->getRepository('Utilisateur');
+		$utilisateur = $utilisateurRepository->findOneBy(['login' => $login]);
+	
+		if (!$err && $utilisateur) {
+			// Vérification du mot de passe (en supposant qu'il est haché dans la base de données)
+			if (password_verify($pass, $utilisateur->getPassword())) {
+				// Création du JWT avec les informations de l'utilisateur
+				$response = createJwt($response, $utilisateur->getId(), $utilisateur->getEmail());
+	
+				// Renvoi des informations de l'utilisateur
+				$data = array('nom' => $utilisateur->getNom(), 'prenom' => $utilisateur->getPrenom());
+				$response->getBody()->write(json_encode($data));
+			} else {
+				// Mauvais mot de passe
+				$response = $response->withStatus(403);
+			}
+		} else {
+			// Données d'authentification invalides ou utilisateur non trouvé
+			$response = $response->withStatus(401);
+		}
+	
+		return addHeaders($response);
 	}
+	
 
 	function postRegister(Request $request, Response $response, $args) {
 		global $entityManager;

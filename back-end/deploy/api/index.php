@@ -12,4 +12,5 @@
 	require_once __DIR__ . '/route.php';
 
 	// Run app
+	//$app->addBodyParsingMiddleware();
 	$app->run();

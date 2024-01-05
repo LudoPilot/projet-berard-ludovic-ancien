@@ -13,21 +13,20 @@
 	    return $token; 
 	}
 
-	function createJwt (Response $response) : Response {
-	    $userid = "emma";
-	    $email = "emma@emma.fr";
-	    $issuedAt = time();
-	    $expirationTime = $issuedAt + 600; // jwt valid for 60 seconds from the issued time
-	    $payload = array(
-		'userid' => $userid,
-		'iat' => $issuedAt,
-		'exp' => $expirationTime
-	    );
-	    $token_jwt = JWT::encode($payload,JWT_SECRET, "HS256");
-	    $response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
-	    return $response;
+	function createJwt (Response $response, $userid, $email) : Response {
+		$issuedAt = time();
+		$expirationTime = $issuedAt + 600; // jwt valid for 60 seconds from the issued time
+		$payload = array(
+			'userid' => $userid,
+			'email' => $email,
+			'iat' => $issuedAt,
+			'exp' => $expirationTime
+		);
+		$token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
+		$response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
+		return $response;
 	}
-
+	
 	// Middleware de validation du Jwt
 	$options = [
 	    "attribute" => "token",

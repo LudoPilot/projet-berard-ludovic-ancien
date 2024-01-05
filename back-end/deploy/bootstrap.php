@@ -11,7 +11,7 @@
 	'driver' => 'pdo_pgsql',
 	'user' => 'projet_angular_bdd_user',
 	'password' => '1YHzChp7dvc1a5yUZugO7cnpuVXS8fdw',
-	'dbname' => 'cnam_db_akkt',
+	'dbname' => 'projet_angular_bdd',
 	'port' => '5432'
 	);
 

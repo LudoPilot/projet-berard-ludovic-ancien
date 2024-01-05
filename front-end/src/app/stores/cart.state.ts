@@ -1,10 +1,10 @@
 import { State, Action, StateContext, Selector } from '@ngxs/store';
-import { Product } from '../models/product.model';// Importez le type Product approprié
+import { Product } from '../models/product.model';
 import { AddToCart, RemoveFromCart } from './cart.action';
 import { Injectable } from '@angular/core';
 
 export interface CartStateModel {
-	cartItems: Product[]; // Utilisez le type Product ici
+	cartItems: Product[];
 }
 
 @State<CartStateModel>({
@@ -44,5 +44,15 @@ export class CartState {
 		patchState({
 			cartItems: updatedCartItems,
 		});
+	}
+
+	@Selector()
+	static cartItemCount(state: CartStateModel) {
+		return state.cartItems.length;
+	}
+
+	@Selector()
+	static cartTotal(state: CartStateModel) {
+		return state.cartItems.reduce((total, item) => total + item.price, 0);
 	}
 }

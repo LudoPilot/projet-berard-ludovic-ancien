@@ -1,1 +1,9 @@
-<p>cart works!</p>
+<div *ngFor="let product of cartItems$ | async">
+	<h3>{{ product.name }}</h3>
+	<p>Prix : {{ product.price | currency: 'USD' }}</p>
+	<button (click)="removeFromCart(product.id)">Retirer le produit du panier</button>
+</div>
+
+<div *ngIf="(cartItems$ | async)?.length === 0">
+	<p>Votre panier est actuellement vide.</p>
+</div>

@@ -26,7 +26,6 @@ import { ApiHttpInterceptor } from './http-interceptor';
     FormsModule,
 	HttpClientModule,
 	NgxsModule.forRoot([CartState]),
-
   ],
   providers: [
 	{ provide: HTTP_INTERCEPTORS, useClass: ApiHttpInterceptor, multi: true },
